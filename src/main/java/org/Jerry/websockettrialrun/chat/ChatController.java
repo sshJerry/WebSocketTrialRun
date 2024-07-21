@@ -14,7 +14,12 @@ public class ChatController {
 
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/public")
-    public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {return chatMessage;}
+    public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {
+        // TODO - Sanitizer
+        // TODO - Bad word Check
+        if (chatMessage.getContent().isEmpty() || chatMessage.getContent().length() > 200)
+            chatMessage.setSender(chatMessage.getContent().substring(0,199));
+        return chatMessage;}
 
     @MessageMapping("/chat.userConnect")
     @SendTo("/topic/public")
