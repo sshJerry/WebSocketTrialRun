@@ -24,17 +24,19 @@ function connect(event) {
 
         var socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
-        stompClient.connect({}, onConnected, onError);
+        var headers = { 'username': username };
+        stompClient.connect(headers, onConnected, onError);
     }
     event.preventDefault();
 }
 
 function onConnected() {
+    //stompClient.send('/app/chat.userConnect', {}, JSON.stringify({sender: username, type: 'CONNECT'}));
     // subscribe to the public topic
     stompClient.subscribe('/topic/public', onMessageReceived);
 
     // tell username to the server
-    stompClient.send('/app/chat.userConnected', {}, JSON.stringify({sender: username, type: 'CONNECTED'}));
+    //stompClient.send('/app/chat.userConnected', {}, JSON.stringify({sender: username, type: 'CONNECTED'}));
     connectingElement.classList.add('hidden');
 }
 
@@ -48,9 +50,9 @@ function onMessageReceived(payload) {
 
     var messageElement = document.createElement('li');
 
-    if(message.type === 'CONNECTING') {
+    if(message.type === 'CONNECT') {
         messageElement.classList.add('event-message');
-        message.content = message.sender + ' has joined!';
+        message.content = message.sender + ' is connecting!';
     } else if (message.type === 'CONNECTED') {
         messageElement.classList.add('event-message');
         message.content = message.sender + ' has connected!';

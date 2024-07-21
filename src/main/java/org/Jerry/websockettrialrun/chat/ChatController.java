@@ -7,31 +7,40 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
+import java.util.Objects;
+
 @Controller
 public class ChatController {
 
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/public")
-    public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {return chatMessage;}
+    public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {
+        // TODO - Sanitizer
+        // TODO - Bad word Check
+        if (chatMessage.getContent().isEmpty() || chatMessage.getContent().length() > 200)
+            chatMessage.setSender(chatMessage.getContent().substring(0,199));
+        return chatMessage;}
 
-    @MessageMapping("/chat.userConnecting")
+    @MessageMapping("/chat.userConnect")
     @SendTo("/topic/public")
-    public ChatMessage userConnecting(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
-        headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+    public ChatMessage userConnect(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
         return chatMessage;
     }
 
     @MessageMapping("/chat.userConnected")
     @SendTo("/topic/public")
     public ChatMessage userConnected(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
-        headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+        //headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+        String username = Objects.requireNonNull(headerAccessor.getSessionAttributes()).get("username").toString();
+        if (username != null) chatMessage.setSender(username);
         return chatMessage;
     }
 
     @MessageMapping("/chat.userDisconnected")
     @SendTo("/topic/public")
     public ChatMessage userDisconnected(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
-        headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+        String username = Objects.requireNonNull(headerAccessor.getSessionAttributes()).get("username").toString();
+        if (username != null) chatMessage.setSender(username);
         return chatMessage;
     }
 }
